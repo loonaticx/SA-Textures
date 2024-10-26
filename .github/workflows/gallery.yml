@@ -1,0 +1,48 @@
+name: Publish Gallery
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+permissions:
+  id-token: write
+  actions: write
+  pages: write
+jobs:
+  deploy:
+    name: Publish Gallery to Github Pages
+    if: ${{ github.repository != 'gautamkrishnar/github-pages-gallery' && github.event.head_commit.message != '' && github.event.head_commit.message != 'Initial commit' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses:  actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: make and move assets to gallery folder
+        run: mv * gallery | mkdir gallery
+      - name: copy gitkeep
+        run: touch .gitkeep && cp .gitkeep gallery/.gitkeep && cd gallery
+      - name: copy gitkeep recursive
+        run: find . -type d -exec touch {}/".{gitkeep}"  \;
+      - name: go back to base dir
+        run: cd ../
+      - name: acquire gallery config
+        run: wget https://raw.githubusercontent.com/VGTextureArchive/.github/refs/heads/main/profile/config/gallery.json -O .github/config/config.json
+      - name: Build Gallery 🔧
+        run: docker run -v "$(pwd):/work" ghcr.io/thumbsup/thumbsup /bin/sh -c "cd /work/ && thumbsup --config .github/config/config.json"
+      - name: Package and upload artifact 📦
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build_output'
+          name: gh-pages
+      - name: Deploy to Github Pages 🚀
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete artifact 🗑️
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: gh-pages
