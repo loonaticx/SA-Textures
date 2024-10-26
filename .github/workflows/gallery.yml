@@ -29,7 +29,7 @@ jobs:
       - name: go back to base dir
         run: cd ../
       - name: acquire gallery config
-        run: wget https://raw.githubusercontent.com/VGTextureArchive/.github/refs/heads/main/profile/config/gallery.json -O .github/config/config.json
+        run: wget https://raw.githubusercontent.com/VGTextureArchive/.github/refs/heads/main/config/gallery.json -O .github/config/config.json
       - name: Build Gallery 🔧
         run: docker run -v "$(pwd):/work" ghcr.io/thumbsup/thumbsup /bin/sh -c "cd /work/ && thumbsup --config .github/config/config.json"
       - name: Package and upload artifact 📦
